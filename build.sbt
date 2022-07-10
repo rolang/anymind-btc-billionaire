@@ -23,9 +23,10 @@ val circeVersion          = "0.14.2"
 val logbackVersion        = "1.2.11"
 val zioVersion            = "2.0.0"
 val zioCatsInteropVersion = "3.3.0"
-val refinedVersion        = "0.10.0"
+val refinedVersion        = "0.10.1"
 val tapirVersion          = "1.0.1"
-val http4sVersion         = "0.23.12"
+val http4sVersion         = "0.23.13"
+val http4sBlazeVersion    = "0.23.12"
 val zioConfigVersion      = "3.0.1"
 val skunkVersion          = "0.3.1"
 
@@ -51,10 +52,8 @@ lazy val root =
         "com.typesafe.akka" %% "akka-discovery"    % akkaVersion,
 
         // effects
-        "dev.zio" %% "zio"          % zioVersion,
-        "dev.zio" %% "zio-test"     % zioVersion % Test,
-        "dev.zio" %% "zio-test-sbt" % zioVersion % Test,
-        "dev.zio" %% "zio-config"   % zioConfigVersion,
+        "dev.zio" %% "zio"        % zioVersion,
+        "dev.zio" %% "zio-config" % zioConfigVersion,
 
         // refined
         "eu.timepit" %% "refined"      % refinedVersion,
@@ -68,8 +67,7 @@ lazy val root =
         "ch.qos.logback" % "logback-classic" % logbackVersion,
 
         // http api
-        "org.http4s"                  %% "http4s-dsl"              % http4sVersion,
-        "org.http4s"                  %% "http4s-blaze-server"     % http4sVersion,
+        "org.http4s"                  %% "http4s-blaze-server"     % http4sBlazeVersion,
         "org.http4s"                  %% "http4s-circe"            % http4sVersion,
         "dev.zio"                     %% "zio-interop-cats"        % zioCatsInteropVersion,
         "com.softwaremill.sttp.tapir" %% "tapir-http4s-server-zio" % tapirVersion,
@@ -80,6 +78,10 @@ lazy val root =
         "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % tapirVersion,
 
         // db
-        "org.tpolecat" %% "skunk-core" % skunkVersion
+        "org.tpolecat" %% "skunk-core" % skunkVersion,
+
+        // test
+        "dev.zio" %% "zio-test"     % zioVersion % Test,
+        "dev.zio" %% "zio-test-sbt" % zioVersion % Test
       )
     )
