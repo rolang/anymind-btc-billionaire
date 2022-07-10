@@ -14,8 +14,8 @@ import dev.rolang.wallet.domain.{
   TransactionsRepository,
   WalletService
 }
-import dev.rolang.wallet.infrastructure.http.testsupport.{getRequest, postRequest, toJson}
 import dev.rolang.wallet.infrastructure.http.wallet.v1.BalanceSnapshot.encoder
+import dev.rolang.wallet.infrastructure.testsupport.Http.{getRequest, postRequest, toJson}
 import io.circe.syntax.EncoderOps
 
 import zio.test.Assertion.equalTo

@@ -9,12 +9,12 @@ import akka.kafka.{ConsumerSettings, Subscriptions}
 import dev.rolang.wallet.config.KafkaConfig
 import dev.rolang.wallet.domain.{Satoshi, SatoshiTopUp, TopUpRepository, TransactionEvent}
 import dev.rolang.wallet.infrastructure.testsupport.Kafka
-import dev.rolang.wallet.infrastructure.{WalletActorSystem, proto}
+import dev.rolang.wallet.infrastructure.{Conversion, WalletActorSystem, proto}
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, StringDeserializer}
 
 import zio.test.Assertion.{equalTo, hasSameElements, hasSize}
-import zio.test.{Spec, TestEnvironment, ZIOSpecDefault, _}
+import zio.test.{Spec, TestEnvironment, ZIOSpecDefault, *}
 import zio.{Random, Scope, Task, ZIO, ZLayer, durationInt}
 
 object KafkaTopUpRepositorySpec extends ZIOSpecDefault {
@@ -38,15 +38,15 @@ object KafkaTopUpRepositorySpec extends ZIOSpecDefault {
       val max = OffsetDateTime.parse("2030-01-01T00:00:00Z")
 
       check(Gen.uuid, Gen.offsetDateTime(min, max), Gen.long) { case (id, ts, amount) =>
-        val asEvent = KafkaTopUpRepository.toTransactionEvent(id, SatoshiTopUp(ts, Satoshi(amount)))
-        val asProto = KafkaTopUpRepository.toTransactionEventProto(asEvent)
+        val asEvent = Conversion.toTransactionEvent(id, SatoshiTopUp(ts, Satoshi(amount)))
+        val asProto = Conversion.toTransactionEventProto(asEvent)
 
         val bytes          = proto.TransactionEvent.toByteArray(asProto)
         val fromBytesProto = proto.TransactionEvent.parseFrom(bytes)
 
-        assert(asEvent)(equalTo(KafkaTopUpRepository.toTransactionEvent(asProto))) &&
+        assert(asEvent)(equalTo(Conversion.toTransactionEvent(asProto))) &&
         assert(asProto)(equalTo(fromBytesProto)) &&
-        assert(asEvent)(equalTo(KafkaTopUpRepository.toTransactionEvent(fromBytesProto)))
+        assert(asEvent)(equalTo(Conversion.toTransactionEvent(fromBytesProto)))
       }
     },
     test("a top-up creates publishes events to a kafka topic") {
@@ -71,7 +71,7 @@ object KafkaTopUpRepositorySpec extends ZIOSpecDefault {
                 Subscriptions.topics(config.walletTopUpTopic)
               )
               .map { msg =>
-                KafkaTopUpRepository.toTransactionEvent(proto.TransactionEvent.parseFrom(msg.value()))
+                Conversion.toTransactionEvent(msg.value())
               }
               .take(topUps.size.toLong)
               .runFold(Set.empty[TransactionEvent])((set, event) => set + event)

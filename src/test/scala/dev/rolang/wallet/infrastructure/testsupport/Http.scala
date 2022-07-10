@@ -1,4 +1,4 @@
-package dev.rolang.wallet.infrastructure.http
+package dev.rolang.wallet.infrastructure.testsupport
 
 import java.net.URI
 import java.net.http.{HttpClient, HttpRequest, HttpResponse}
@@ -8,8 +8,7 @@ import io.circe.parser.parse
 
 import zio.{Task, ZIO}
 
-package object testsupport {
-
+object Http {
   def postRequest(uri: String, body: String): Task[HttpResponse[String]] = {
     val client = HttpClient.newHttpClient()
     val req    =
@@ -36,5 +35,4 @@ package object testsupport {
   }
 
   def toJson(s: String): Json = parse(s).toOption.get
-
 }
