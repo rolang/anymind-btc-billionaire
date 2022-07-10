@@ -7,6 +7,10 @@
     </appender>
 
     <logger name="org.http4s.blaze" level="WARN"/>
+    <logger name="org.apache.kafka" level="ERROR"/>
+    <logger name="kafka" level="WARN"/>
+    <logger name="org.apache.zookeeper" level="ERROR"/>
+    <logger name="state.change" level="WARN"/>
 
     <root level="info">
         <appender-ref ref="STDOUT"/>

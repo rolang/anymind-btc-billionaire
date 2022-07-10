@@ -1,6 +1,7 @@
 package dev.rolang.wallet.infrastructure.http
 
 import java.time.Instant
+import java.util.UUID
 
 import dev.rolang.wallet.config.HttpConfig
 import dev.rolang.wallet.domain.{
@@ -25,7 +26,9 @@ object ServerSpec extends ZIOSpecDefault {
   val randomPortHttpConfig: ULayer[HttpConfig] = ZLayer.succeed(HttpConfig(0))
 
   private val dummyTopUpRepo = ZLayer.succeed(new TopUpRepository[Task] {
-    override def topUp(transaction: SatoshiTopUp): Task[Unit] = ZIO.unit
+    override def topUp(transaction: SatoshiTopUp): Task[TransactionEvent] = ZIO.succeed(
+      TransactionEvent(UUID.randomUUID(), Instant.now(), 1L)
+    )
   })
 
   private val exampleBalance     = List(BalanceSnapshot(Instant.now(), Satoshi(1L)))
