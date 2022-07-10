@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "dev.rolang.wallet.infrastructure.proto";
+
+package wallet;
+
+// Events published to Kafka
+
+message TransactionEvent {
+  string transactionId = 1;
+  uint64 datetimeMs = 2;
+  int64 amount = 3;
+}
