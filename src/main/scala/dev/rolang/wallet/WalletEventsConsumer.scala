@@ -18,6 +18,6 @@ object WalletEventsConsumer extends ZIOAppDefault {
   override def run: ZIO[Any, Any, ExitCode] = (for {
     _        <- Migration.runMigration.provide(DBConfig.layer)
     consumer <- ZIO.service[WalletEventsKafkaConsumer]
-    e        <- consumer.consumeTask.exitCode
+    e        <- consumer.consumeTask(None).exitCode
   } yield e).provideSomeLayer(Scope.default ++ consumerLayer)
 }

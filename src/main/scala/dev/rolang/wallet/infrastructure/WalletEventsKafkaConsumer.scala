@@ -2,22 +2,18 @@ package dev.rolang.wallet.infrastructure
 
 import java.time.Instant
 import java.util.UUID
-
 import scala.concurrent.Future
-import scala.concurrent.duration.DurationInt
-
 import akka.actor.ActorSystem
 import akka.kafka.ConsumerMessage.{CommittableMessage, CommittableOffset}
 import akka.kafka.scaladsl.{Committer, Consumer}
 import akka.kafka.{CommitterSettings, ConsumerSettings, Subscriptions}
-import akka.stream.RestartSettings
-import akka.stream.scaladsl.RestartSource
 import dev.rolang.wallet.config.KafkaConfig
 import dev.rolang.wallet.domain.{TransactionEvent, TransactionsRepository}
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, StringDeserializer}
-
 import zio.{Task, Unsafe, ZIO, ZLayer}
+
+import scala.concurrent.duration.FiniteDuration
 
 class WalletEventsKafkaConsumer(kafkaConfig: KafkaConfig, repo: TransactionsRepository[Task])(implicit
   system: ActorSystem
@@ -26,25 +22,26 @@ class WalletEventsKafkaConsumer(kafkaConfig: KafkaConfig, repo: TransactionsRepo
   private val consumerSettings =
     ConsumerSettings(system, new StringDeserializer, new ByteArrayDeserializer)
       .withGroupId(kafkaConfig.consumerGroup)
+      .withBootstrapServers(kafkaConfig.bootstrapServers)
       .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
   private val committerSettings = CommitterSettings(system)
 
-  val consumeTask: Task[Unit] = ZIO.fromFuture { _ =>
-    RestartSource
-      .onFailuresWithBackoff(
-        // could be moved to config
-        RestartSettings(minBackoff = 1.second, maxBackoff = 30.seconds, randomFactor = 0.1)
-      ) { () =>
-        Consumer
-          .committableSource(
-            consumerSettings,
-            Subscriptions.topics(kafkaConfig.walletTopUpTopic)
-          )
-          .mapAsync(kafkaConfig.consumerConcurrency)(handleRecord)
-          .via(Committer.flow(committerSettings))
-      }
-      .run()
+  // added withinDuration configuration to enable easier termination of the consumer in tests
+  def consumeTask(withinDuration: Option[FiniteDuration]): Task[Unit] = ZIO.fromFuture { _ =>
+    // more configuration like RestartSettings etc. for the consumer could be introduced here
+    val source = Consumer
+      .committableSource(
+        consumerSettings,
+        Subscriptions.topics(kafkaConfig.walletTopUpTopic)
+      )
+      .mapAsync(kafkaConfig.consumerConcurrency)(handleRecord)
+      .via(Committer.flow(committerSettings))
+
+    withinDuration match {
+      case Some(n) => source.takeWithin(n).run()
+      case _       => source.run()
+    }
   }.unit
 
   private def handleRecord(msg: CommittableMessage[String, Array[Byte]]): Future[CommittableOffset] =
