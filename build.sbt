@@ -30,6 +30,7 @@ val http4sBlazeVersion    = "0.23.12"
 val zioConfigVersion      = "3.0.1"
 val skunkVersion          = "0.3.1"
 val embeddedKafkaVersion  = "3.2.0"
+val pgEmbeddedVersion     = "1.0.1"
 
 lazy val root =
   Project(id = "anymind-btc-billionaire", base = file("."))
@@ -82,8 +83,9 @@ lazy val root =
         "org.tpolecat" %% "skunk-core" % skunkVersion,
 
         // test
-        "dev.zio"                 %% "zio-test"       % zioVersion           % Test,
-        "dev.zio"                 %% "zio-test-sbt"   % zioVersion           % Test,
-        "io.github.embeddedkafka" %% "embedded-kafka" % embeddedKafkaVersion % Test
+        "dev.zio"                 %% "zio-test"        % zioVersion           % Test,
+        "dev.zio"                 %% "zio-test-sbt"    % zioVersion           % Test,
+        "io.github.embeddedkafka" %% "embedded-kafka"  % embeddedKafkaVersion % Test,
+        "com.opentable.components" % "otj-pg-embedded" % pgEmbeddedVersion    % Test
       )
     )

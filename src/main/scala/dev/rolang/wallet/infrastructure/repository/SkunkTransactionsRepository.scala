@@ -2,6 +2,7 @@ package dev.rolang.wallet.infrastructure.repository
 
 import java.time.{OffsetDateTime, ZoneOffset}
 
+import dev.rolang.wallet.domain.TransactionsRepository.fillHourlySnapshotGapsPipe
 import dev.rolang.wallet.domain.*
 import skunk.*
 import skunk.codec.all.*
@@ -22,18 +23,21 @@ class SkunkTransactionsRepository(s: Session[Task]) extends TransactionsReposito
   }
 
   override def listHourlyBalanceSnapshots(range: DateTimeRange): Task[List[BalanceSnapshot]] = {
-    val query: Query[(OffsetDateTime, OffsetDateTime), BalanceSnapshot] =
-      sql"""SELECT by_hour, balance FROM hourly_balance_snapshots
-            WHERE by_hour >= $timestamptz AND by_hour <= $timestamptz"""
+    val query: Query[Void, BalanceSnapshot] =
+      sql"""SELECT by_hour, balance FROM hourly_balance_snapshots"""
         .query(timestamptz ~ numeric)
         .map { case dateTime ~ balance =>
           BalanceSnapshot(dateTime.toInstant, Satoshi.fromDecimal(balance))
         }
 
-    s.prepare(query)
-      .use(
-        _.stream((range.from, range.to), 64).compile.toList
-      )
+    s.prepare(query).use {
+      _.stream(Void, 64)
+        .through(fillHourlySnapshotGapsPipe)
+        .dropWhile(_.datetime.compareTo(range.from.toInstant) < 0)
+        .takeWhile(_.datetime.compareTo(range.to.toInstant) <= 0)
+        .compile
+        .toList
+    }
   }
 }
 
