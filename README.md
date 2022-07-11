@@ -47,8 +47,8 @@ a cloud provider like AWS or Google.
 For centralized services like Kafka and Postgres we can achieve scalability after reaching limits of single instances
 by adding new brokers and replicate or mirror topics across brokers, in Postgres we can introduce clustering and/or
 partitioning of tables and/or boot independent instances which will be hydrated by the data from the Kafka cluster.
-This way we can also have deployments in different regions to maximise response times. The client would be able to choose
-the region closest to him.
+This way we can also have deployments in different regions. The client would be able to choose
+the region closest to him to keep response times as low as possible.
 
 ### Used technologies
  - [Akka](https://akka.io/docs) for streaming and communication with Kafka which includes GRPC for serialization of events
