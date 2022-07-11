@@ -2,7 +2,7 @@
 
 It's time to get rich!  
 This awesome API provides endpoints for everyone to top up your BTC wallet and retrieve hourly balance snapshots 
-to be amazed and jealous about your growing balance.  
+to be amazed and jealous about your growing wealth.  
 Minimum top-up amount is `0.00000001` BTC, there is no maximum limit though and no way for withdrawal.
 
 ## Architecture and technology
@@ -53,7 +53,7 @@ the region closest to him to keep response times as low as possible.
 ### Used technologies
  - [Akka](https://akka.io/docs) for streaming and communication with Kafka which includes GRPC for serialization of events
  - [Tapir](https://tapir.softwaremill.com) for description and documentation of the HTTP API
- - [ZIO](https://zio.dev) for a typ-safe, composable functional interface with good testability support
+ - [ZIO](https://zio.dev) for a type-safe, composable functional interface with good testability support
  - [HTTP4s](https://http4s.org) for the underlying HTTP API implementation described with tapir
  - [Circe](https://circe.github.io/circe) for json serialization
  - [Skunk](https://tpolecat.github.io/skunk) for non-blocking, JDBC free access to Postgres with a functional interface
