@@ -32,7 +32,7 @@ We use Scalafix, Scalafmt and Scala compiler configuration integrated via the SB
 A check on the code is performed on each build in CI/CD.
 
 ### Continuous Integration (CI) / Continuous Delivery (CD)
-For CI/CD pipeline we have a GitHub actions configurations which currently just runs the code inspection and all automated tests on commits
+For CI/CD pipeline we have a GitHub actions configuration which currently just runs the code inspection and all automated tests on commits
 or pull requests to master. For an actual release a configuration which publishes a new package/container can be added.
 
 ### Deployment and scalability
@@ -44,7 +44,7 @@ After a successful boot of the new instance, we can initiate a shut-down of the 
 This can be achieved in automated way for example by configuring the deployment in a managed cluster like Kubernetes over
 a cloud provider like AWS or Google.  
   
-For centralized services like Kafka and Postgres we can achieve scalability after reaching limits of single instances
+For central services like Kafka and Postgres we can achieve scalability after reaching limits of single instances
 by adding new brokers and replicate or mirror topics across brokers, in Postgres we can introduce clustering and/or
 partitioning of tables and/or boot independent instances which will be hydrated by the data from the Kafka cluster.
 This way we can also have deployments in different regions. The client would be able to choose
