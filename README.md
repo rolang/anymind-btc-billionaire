@@ -60,6 +60,12 @@ the region closest to him to keep response times as low as possible.
  - [Kafka](https://kafka.apache.org) for distributed storage of events
  - [Postgres](https://www.postgresql.org) for organizing and optimizing data for querying
 
+## TODOs
+- add load tests
+- add more logging
+- add metrics
+- add environment configuration documentation
+
 ## Running locally
 
 Ensure docker with [docker-compose](https://docs.docker.com/compose/install/) is installed.
@@ -79,9 +85,15 @@ Start events consumer in a separate process to update the dataset for querying:
 sbt 'runMain dev.rolang.wallet.WalletEventsConsumer'
 ```
 
+Run health check:
+```shell
+curl -i http://localhost:8080/health
+```
+
 Top-up wallet with BTC amount:
 ```shell
 curl -i -d '{"datetime": "2022-07-07T03:00:00+01:00", "amount": 3.0}' http://localhost:8080/wallet/v1/top-up
+curl -i -d '{"datetime": "2022-07-07T05:00:00+01:00", "amount": 5.0}' http://localhost:8080/wallet/v1/top-up
 ```
 
 Retrieve hourly snapshots for given date-time range:
