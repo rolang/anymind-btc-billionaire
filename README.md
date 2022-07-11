@@ -64,7 +64,7 @@ the region closest to him to keep response times as low as possible.
 - add load tests
 - add more logging
 - add metrics
-- add environment configuration documentation
+- add environment configuration documentation (can be viewed in the [config](src/main/scala/dev/rolang/wallet/config) package)
 
 ## Running locally
 
