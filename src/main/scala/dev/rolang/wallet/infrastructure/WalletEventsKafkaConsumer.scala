@@ -2,7 +2,10 @@ package dev.rolang.wallet.infrastructure
 
 import java.time.Instant
 import java.util.UUID
+
 import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
+
 import akka.actor.ActorSystem
 import akka.kafka.ConsumerMessage.{CommittableMessage, CommittableOffset}
 import akka.kafka.scaladsl.{Committer, Consumer}
@@ -11,9 +14,8 @@ import dev.rolang.wallet.config.KafkaConfig
 import dev.rolang.wallet.domain.{TransactionEvent, TransactionsRepository}
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, StringDeserializer}
-import zio.{Task, Unsafe, ZIO, ZLayer}
 
-import scala.concurrent.duration.FiniteDuration
+import zio.{Task, Unsafe, ZIO, ZLayer}
 
 class WalletEventsKafkaConsumer(kafkaConfig: KafkaConfig, repo: TransactionsRepository[Task])(implicit
   system: ActorSystem

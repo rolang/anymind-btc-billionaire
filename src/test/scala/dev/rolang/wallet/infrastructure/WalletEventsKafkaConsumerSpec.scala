@@ -1,5 +1,10 @@
 package dev.rolang.wallet.infrastructure
 
+import java.time.Instant
+import java.util.UUID
+
+import scala.concurrent.duration.DurationInt
+
 import akka.actor.ActorSystem
 import akka.kafka.ProducerSettings
 import akka.kafka.scaladsl.SendProducer
@@ -8,13 +13,10 @@ import dev.rolang.wallet.domain.{BalanceSnapshot, DateTimeRange, TransactionEven
 import dev.rolang.wallet.infrastructure.testsupport.Kafka
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{ByteArraySerializer, StringSerializer}
-import zio.{Ref, Scope, Task, ZIO, ZLayer}
-import zio.test.*
-import zio.test.Assertion.{equalTo, hasSameElements, hasSize}
 
-import java.time.Instant
-import java.util.UUID
-import scala.concurrent.duration.DurationInt
+import zio.test.Assertion.{equalTo, hasSameElements, hasSize}
+import zio.test.*
+import zio.{Ref, Scope, Task, ZIO, ZLayer}
 
 object WalletEventsKafkaConsumerSpec extends ZIOSpecDefault {
   private val kafkaConfigLayer = {
