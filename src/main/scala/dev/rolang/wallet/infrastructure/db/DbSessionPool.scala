@@ -7,11 +7,12 @@ import skunk.{SSL, Session, Strategy}
 
 import zio.interop.catz.*
 import zio.interop.catz.implicits.*
-import zio.{Scope, Task, ZIO}
+import zio.{RIO, Scope, Task, ZIO}
 
 object DbSessionPool {
+  type Pool = RIO[Scope, Session[Task]]
 
-  val scopedSession: ZIO[DBConfig, Throwable, ZIO[Scope, Throwable, Session[Task]]] = {
+  val scopedSession: ZIO[DBConfig, Throwable, Pool] = {
     implicit val console: CatsConsole[Task] = CatsConsole.make[Task]
 
     ZIO.scoped {

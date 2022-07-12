@@ -1,22 +1,22 @@
 package dev.rolang.wallet.infrastructure.db
 
 import dev.rolang.wallet.config.DBConfig
-import skunk.Session
 import skunk.implicits.*
 
 import zio.{RIO, Task, ZIO, ZLayer}
 
 object Migration {
 
-  private def migrate(session: Session[Task]): Task[Unit] =
+  private def migrate(pool: DbSessionPool.Pool): Task[Unit] = ZIO.scoped {
     for {
-      _ <- session.execute(sql"""
+      session <- pool
+      _       <- session.execute(sql"""
              CREATE TABLE IF NOT EXISTS wallet_transactions(
                id UUID PRIMARY KEY,
                datetime TIMESTAMP WITH TIME ZONE NOT NULL,
                amount BIGINT NOT NULL
              )""".command)
-      _ <- session.execute(sql"""
+      _       <- session.execute(sql"""
             CREATE INDEX IF NOT EXISTS wallet_transactions_dt_idx ON wallet_transactions(datetime)
              """.command)
 
@@ -34,14 +34,13 @@ object Migration {
                SELECT by_hour, SUM(amount_sum) OVER (ORDER BY by_hour) balance
                FROM hourly_txn_amount
              )""".command)
-
     } yield ()
+  }
 
   val runMigration: RIO[DBConfig, Unit] = for {
-    config        <- ZIO.service[DBConfig]
-    scopedSession <- DbSessionPool.scopedSession.provide(ZLayer.succeed(config))
-    session       <- ZIO.scoped(scopedSession)
-    _             <- migrate(session)
+    config <- ZIO.service[DBConfig]
+    pool   <- DbSessionPool.scopedSession.provide(ZLayer.succeed(config))
+    _      <- migrate(pool)
   } yield ()
 
 }

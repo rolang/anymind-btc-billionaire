@@ -11,7 +11,7 @@ import skunk.implicits.*
 import zio.interop.catz.*
 import zio.{RIO, Scope, Task, ZIO, ZLayer}
 
-class SkunkTransactionsRepository(s: Session[Task]) extends TransactionsRepository[Task] {
+class SkunkTransactionsRepository(pool: RIO[Scope, Session[Task]]) extends TransactionsRepository[Task] {
   override def addEvent(event: TransactionEvent): Task[Unit] = {
     val command: Command[TransactionEvent] =
       sql"""INSERT INTO wallet_transactions (id, datetime, amount)
@@ -19,7 +19,8 @@ class SkunkTransactionsRepository(s: Session[Task]) extends TransactionsReposito
         case TransactionEvent(id, t, a) =>
           id ~ OffsetDateTime.ofInstant(t, ZoneOffset.UTC) ~ a
       }
-    s.prepare(command).use(_.execute(event)).unit
+
+    ZIO.scoped(pool.flatMap(_.prepare(command).use(_.execute(event)).unit))
   }
 
   override def listHourlyBalanceSnapshots(range: DateTimeRange): Task[List[BalanceSnapshot]] = {
@@ -30,22 +31,23 @@ class SkunkTransactionsRepository(s: Session[Task]) extends TransactionsReposito
           BalanceSnapshot(dateTime.toInstant, Satoshi.fromDecimal(balance))
         }
 
-    s.prepare(query).use {
-      _.stream(Void, 64)
-        .through(fillHourlySnapshotGapsPipe)
-        .dropWhile(_.datetime.compareTo(range.from.toInstant) < 0)
-        .takeWhile(_.datetime.compareTo(range.to.toInstant) <= 0)
-        .compile
-        .toList
-    }
+    ZIO.scoped(
+      pool.flatMap(_.prepare(query).use {
+        _.stream(Void, 64)
+          .through(fillHourlySnapshotGapsPipe)
+          .dropWhile(_.datetime.compareTo(range.from.toInstant) < 0)
+          .takeWhile(_.datetime.compareTo(range.to.toInstant) <= 0)
+          .compile
+          .toList
+      })
+    )
   }
 }
 
 object SkunkTransactionsRepository {
   val layer: ZLayer[RIO[Scope, Session[Task]], Throwable, TransactionsRepository[Task]] = ZLayer {
     for {
-      s  <- ZIO.service[RIO[Scope, Session[Task]]]
-      ss <- ZIO.scoped(s)
-    } yield new SkunkTransactionsRepository(ss)
+      pool <- ZIO.service[RIO[Scope, Session[Task]]]
+    } yield new SkunkTransactionsRepository(pool)
   }
 }
