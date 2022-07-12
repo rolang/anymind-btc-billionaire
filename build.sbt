@@ -89,3 +89,13 @@ lazy val root =
         "com.opentable.components" % "otj-pg-embedded" % pgEmbeddedVersion    % Test
       )
     )
+
+val gatlingVersion = "3.8.2"
+lazy val loadTest  = (project in file("test/gatling"))
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.gatling.highcharts" % "gatling-charts-highcharts" % gatlingVersion,
+      "io.gatling"            % "gatling-test-framework"    % gatlingVersion
+    )
+  )
+  .enablePlugins(GatlingPlugin)

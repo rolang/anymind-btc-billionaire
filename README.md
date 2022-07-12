@@ -25,7 +25,14 @@ We have some test coverage with some automated unit and integration tests for mo
 sbt test
 ```
 For integration tests an embedded Kafka service and a dockerized Postgres version will be booted up automatically.  
-For a coverage report a tool like [sbt-scoverage](https://github.com/scoverage/sbt-scoverage) can be integrated.
+For a coverage report a tool like [sbt-scoverage](https://github.com/scoverage/sbt-scoverage) can be integrated.  
+There is a simple gatling load test that can be performed manually by running:
+```shell
+sbt loadTest/gatling:test
+```
+See the configuration of the test [here](test/gatling/src/test/scala/Wallet.scala).  
+Ensure the services are running before starting the test.  
+*Current load test results indicate, that we potentially need to improvement the read performance.*
 
 ### Code inspection / quality
 We use Scalafix, Scalafmt and Scala compiler configuration integrated via the SBT build tool to keep a high code quality standard.
@@ -61,7 +68,6 @@ the region closest to him to keep response times as low as possible.
  - [Postgres](https://www.postgresql.org) for organizing and optimizing data for querying
 
 ## TODOs
-- add load tests
 - add more logging
 - add metrics
 - add environment configuration documentation (can be viewed in the [config](src/main/scala/dev/rolang/wallet/config) package)

@@ -22,7 +22,7 @@ object DBConfig {
         string("POSTGRES_HOST").default("localhost") zip
         int("POSTGRES_PORT").default(5432) zip
         string("POSTGRES_DATABASE").default("postgres") zip
-        int("POSTGRES_MAX_POOL_SIZE").default(10) zip
+        int("POSTGRES_MAX_POOL_SIZE").default(80) zip
         boolean("POSTGRES_USE_SSL").default(false)).to[DBConfig]
     )
 }
