@@ -1,7 +1,7 @@
 ## BTC billionaire
 
 It's time to get rich!  
-This awesome API provides endpoints for everyone to top up your BTC wallet and retrieve hourly balance snapshots 
+This awesome REST API provides endpoints for everyone to top up your BTC wallet and retrieve hourly balance snapshots 
 to be amazed and jealous about your growing wealth.  
 Minimum top-up amount is `0.00000001` BTC, there is no maximum limit though and no way for withdrawal.
 
@@ -51,7 +51,7 @@ This can be achieved in automated way for example by configuring the deployment 
 a cloud provider like AWS or Google.  
   
 For central services like Kafka and Postgres we can achieve scalability after reaching limits of single instances
-by adding new brokers and replicate or mirror topics across brokers, in Postgres we can introduce clustering and/or
+by adding new brokers and replicate or mirror topics/partitions across brokers, in Postgres we can introduce clustering and/or
 partitioning of tables and/or boot independent instances which will be hydrated by the data from the Kafka cluster.
 This way we can also have deployments in different regions. The client would be able to choose
 the region closest to him to keep response times as low as possible.
@@ -101,7 +101,8 @@ curl -i -d '{"datetime": "2022-07-07T03:00:00+01:00", "amount": 3.0}' http://loc
 curl -i -d '{"datetime": "2022-07-07T05:00:00+01:00", "amount": 5.0}' http://localhost:8080/wallet/v1/top-up
 ```
 
-Retrieve hourly snapshots for given date-time range:
+Retrieve hourly snapshots for given date-time range.  
+__NOTE__: the result may be outdated by up to the configured view refresh interval. Default is 10 seconds.
 ```shell
 curl -i -d '{"from": "2022-07-07T00:00:00Z", "to": "2022-07-08T00:00:00Z"}' http://localhost:8080/wallet/v1/hourly-balance
 ```
