@@ -30,21 +30,26 @@ object WalletEventsKafkaConsumerSpec extends ZIOSpecDefault {
     }
   }
 
-  class TestTransactionsRepository(val storage: Ref[Vector[TransactionEvent]]) extends TransactionsRepository[Task] {
+  class TestTransactionsRepository(val eventsStorage: Ref[Vector[TransactionEvent]], val refreshCounts: Ref[Int])
+      extends TransactionsRepository[Task] {
     override def addEvent(event: TransactionEvent): Task[Unit] =
-      storage.getAndUpdate(_ :+ event).unit
+      eventsStorage.getAndUpdate(_ :+ event).unit
 
     override def listHourlyBalanceSnapshots(range: DateTimeRange): Task[List[BalanceSnapshot]] = ZIO.succeed(Nil)
+
+    override def refreshBalanceView: Task[Unit] = refreshCounts.getAndUpdate(_ + 1).unit
   }
 
   val testRepoLayer: ZLayer[Any, Nothing, TransactionsRepository[Task]] = ZLayer {
     for {
       s <- Ref.make(Vector.empty[TransactionEvent])
-    } yield new TestTransactionsRepository(s)
+      c <- Ref.make(0)
+    } yield new TestTransactionsRepository(s, c)
   }
 
   override def spec: Spec[TestEnvironment & Scope, Any] =
-    suite("WalletEventsKafkaConsumerSpec")(test("consume and store events") {
+    suite("WalletEventsKafkaConsumerSpec")(test("consume events and refresh view") {
+      val refreshFreq = 2.seconds
       (for {
         system          <- ZIO.service[ActorSystem]
         kafkaConfig     <- ZIO.service[KafkaConfig]
@@ -58,11 +63,13 @@ object WalletEventsKafkaConsumerSpec extends ZIOSpecDefault {
                                new ProducerRecord(kafkaConfig.walletTopUpTopic, event.transactionId, event.toByteArray)
                              ZIO.fromFuture(_ => producer.send(record)).as(event)
                            }
-        _               <- subject.consumeTask(Some(2.seconds))
+        _               <- subject.run(Some(refreshFreq.plus(1.second)))
         testRepo        <- ZIO.service[TransactionsRepository[Task]].map(_.asInstanceOf[TestTransactionsRepository])
-        stored          <- testRepo.storage.get.map(_.map(Conversion.toTransactionEventProto))
+        stored          <- testRepo.eventsStorage.get.map(_.map(Conversion.toTransactionEventProto))
+        refreshCount    <- testRepo.refreshCounts.get
       } yield assert(stored)(hasSize(equalTo(produced.size))) &&
-        assert(stored)(hasSameElements(produced))).provideSomeLayer(WalletEventsKafkaConsumer.layer)
+        assert(stored)(hasSameElements(produced)) &&
+        assert(refreshCount)(equalTo(1))).provideSomeLayer(WalletEventsKafkaConsumer.layer(refreshFreq))
 
     }).provideCustomLayerShared(WalletActorSystem.layer ++ kafkaConfigLayer ++ testRepoLayer)
 }

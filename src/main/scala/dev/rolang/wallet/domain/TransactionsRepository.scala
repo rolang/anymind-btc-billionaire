@@ -7,10 +7,11 @@ trait TransactionsRepository[F[_]] {
   def addEvent(event: TransactionEvent): F[Unit]
 
   def listHourlyBalanceSnapshots(range: DateTimeRange): F[List[BalanceSnapshot]]
+
+  def refreshBalanceView: F[Unit]
 }
 
 object TransactionsRepository {
-  // this could be made redundant if we'd store this result in the database to optimize querying performance
   def fillHourlySnapshotGapsPipe[F[_]]: Pipe[F, BalanceSnapshot, BalanceSnapshot] =
     _.zipWithPrevious.flatMap {
       case (Some(prev), next) =>

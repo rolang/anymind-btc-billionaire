@@ -38,6 +38,7 @@ object ServerSpec extends ZIOSpecDefault {
     override def addEvent(event: TransactionEvent): Task[Unit]                                 = ZIO.unit
     override def listHourlyBalanceSnapshots(range: DateTimeRange): Task[List[BalanceSnapshot]] =
       ZIO.succeed(exampleBalance)
+    override def refreshBalanceView: Task[Unit]                                                = ZIO.unit
   })
 
   private val dummyServiceLayer = ZLayer((for {

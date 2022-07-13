@@ -31,8 +31,7 @@ There is a simple gatling load test that can be performed manually by running:
 sbt loadTest/gatling:test
 ```
 See the configuration of the test [here](test/gatling/src/test/scala/Wallet.scala).  
-Ensure the services are running before starting the test.  
-*Current load test results indicate, that we potentially need to improvement the read performance.*
+Ensure the services are running before starting the test (see how to run in [Running locally](#running-locally) section).
 
 ### Code inspection / quality
 We use Scalafix, Scalafmt and Scala compiler configuration integrated via the SBT build tool to keep a high code quality standard.

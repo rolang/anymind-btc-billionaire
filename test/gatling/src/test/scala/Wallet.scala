@@ -11,7 +11,7 @@ import scala.util.Random
 class Wallet extends Simulation {
 
   val usersPerSecond: Double = 100.0
-  val loadDuring: FiniteDuration = 30.seconds
+  val loadDuring: FiniteDuration = 1.minute
 
   val httpProtocol: HttpProtocolBuilder = http.baseUrl("http://localhost:8080")
 

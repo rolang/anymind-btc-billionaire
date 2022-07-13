@@ -10,7 +10,7 @@ import dev.rolang.wallet.infrastructure.db.{DbSessionPool, Migration}
 import dev.rolang.wallet.infrastructure.testsupport.Postgres
 
 import zio.test.Assertion.{equalTo, hasSameElements, hasSize}
-import zio.test.{Spec, TestEnvironment, ZIOSpecDefault, _}
+import zio.test.{Spec, TestEnvironment, ZIOSpecDefault, *}
 import zio.{Scope, Task, ZIO, ZLayer}
 
 object SkunkTransactionsRepositorySpec extends ZIOSpecDefault {
@@ -26,7 +26,7 @@ object SkunkTransactionsRepositorySpec extends ZIOSpecDefault {
     test("add events and list balance snapshots") {
       (for {
         _          <- Migration.runMigration
-        r          <- ZIO.service[TransactionsRepository[Task]]
+        subject    <- ZIO.service[TransactionsRepository[Task]]
         date        = LocalDate.of(2022, 7, 10)
         fromOneAm   = date.atTime(OffsetTime.of(1, 0, 0, 0, ZoneOffset.UTC)).toInstant
         fromTwoAm   = fromOneAm.plus(1, HOURS)
@@ -47,7 +47,7 @@ object SkunkTransactionsRepositorySpec extends ZIOSpecDefault {
                           TransactionEvent(UUID.randomUUID(), fromFiveAm, 1L),
                           TransactionEvent(UUID.randomUUID(), fromFiveAm.plus(2, MINUTES), 0L)
                         )
-                      )(r.addEvent)
+                      )(subject.addEvent)
         expectedAll = Seq(
                         BalanceSnapshot(fromOneAm.plus(1, HOURS), Satoshi(3L)),
                         BalanceSnapshot(fromOneAm.plus(2, HOURS), Satoshi(9L)),
@@ -61,8 +61,9 @@ object SkunkTransactionsRepositorySpec extends ZIOSpecDefault {
                       )
         allRange    = toDateTimeRange(fromOneAm, fromFiveAm.plus(1, HOURS))
         gapRange    = toDateTimeRange(fromOneAm.plus(3, HOURS), fromOneAm.plus(4, HOURS))
-        allResults <- r.listHourlyBalanceSnapshots(allRange)
-        gapResult  <- r.listHourlyBalanceSnapshots(gapRange)
+        _          <- subject.refreshBalanceView
+        allResults <- subject.listHourlyBalanceSnapshots(allRange)
+        gapResult  <- subject.listHourlyBalanceSnapshots(gapRange)
       } yield {
         assert(allResults)(hasSize(equalTo(expectedAll.size))) &&
         assert(allResults)(hasSameElements(expectedAll)) &&

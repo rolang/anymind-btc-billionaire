@@ -27,13 +27,18 @@ object Migration {
                FROM wallet_transactions
                GROUP BY by_hour
              )""".command)
-
-      // This could be optimized by using a materialized view which is updated once a hour
+      // hourly balance snapshots view which may have gaps if there were no transactions at the time
       _ <- session.execute(sql"""
              CREATE OR REPLACE VIEW hourly_balance_snapshots AS (
                SELECT by_hour, SUM(amount_sum) OVER (ORDER BY by_hour) balance
                FROM hourly_txn_amount
              )""".command)
+      // complete hourly balance snapshots table for each hour, to use for querying snapshots by date-time range
+      _ <- session.execute(sql"""
+            CREATE TABLE IF NOT EXISTS hourly_balance_snapshots_complete(
+               datetime TIMESTAMP WITH TIME ZONE PRIMARY KEY,
+               amount BIGINT NOT NULL
+            )""".command)
     } yield ()
   }
 
